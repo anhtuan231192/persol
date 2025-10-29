@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,10 +6,15 @@
     <title>Admin - Persol</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="icon" href="/E-project/persol_project/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/E-project/persol_project/favicon.ico" type="image/x-icon">
 </head>
 <body class="admin-body">
 
     <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <img src="assets/images/logo.png" alt="Persol Logo">
+        </div>
         <h2>Persol Admin</h2>
         <nav>
             <a href="index.php">View Main Site</a>

@@ -113,5 +113,57 @@ getTemplate: (page) => fetch(`templates/${page}.html`).then(res => res.text()),
             headers: { 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ _method: 'DELETE', product_id })
         });
+    },
+
+    admin_uploadDocument: async (product_id, file, token) => {
+        try {
+            const formData = new FormData();
+            formData.append('product_id', product_id);
+            formData.append('document', file);
+
+            const response = await fetch(`${API_BASE_URL}/admin/upload_document.php`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Upload document error:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    admin_uploadProductImage: async (product_id, file, token) => {
+        try {
+            const formData = new FormData();
+            formData.append('product_id', product_id);
+            formData.append('image', file);
+
+            const response = await fetch(`${API_BASE_URL}/admin/upload_product_image.php`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Upload product image error:', error);
+            return { success: false, message: error.message };
+        }
     }
 };

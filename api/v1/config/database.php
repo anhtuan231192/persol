@@ -4,8 +4,8 @@ class Database
     // TODO: Database connection info must be kept secret
     private $host = "localhost";
     private $db_name = "persol_db";
-    private $username = "admin";
-    private $password = "admin";
+    private $username = "root";
+    private $password = "";
     public $conn;
 
     // TODO: Use rand to generate secret key
