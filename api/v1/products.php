@@ -9,7 +9,7 @@ $db = (new Database())->getConnection();
 $baseQuery = "SELECT p.product_id, p.brand_id, p.category_id, p.type_id,
               p.product_name, p.product_description, p.Price,
               p.stock_quantity, p.stock_status, p.image_filename, p.image_mime_type,
-              p.created_at, p.updated_at,
+              p.created_at, p.updated_at, p.is_active,
               b.brand_name, c.category_name, t.type_name
               FROM PRODUCTS p
               LEFT JOIN BRANDS b ON p.brand_id = b.brand_id
@@ -33,7 +33,7 @@ try {
             exit();
         }
 
-        $stmt = $db->prepare("$baseQuery WHERE p.product_id = ?");
+        $stmt = $db->prepare("$baseQuery WHERE p.product_id = ? AND p.is_active = 1");
         $stmt->execute([$id]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -72,7 +72,7 @@ try {
             $placeholders = implode(",", array_fill(0, count($ids), "?"));
 
             $stmt = $db->prepare(
-                "$baseQuery WHERE p.product_id IN ($placeholders)",
+                "$baseQuery WHERE p.product_id IN ($placeholders) AND p.is_active = 1",
             );
             $stmt->execute($ids);
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -84,7 +84,6 @@ try {
                 $specStmt->execute($ids);
                 $allSpecs = $specStmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Create a map of product_id to specifications
                 $specsMap = [];
                 foreach ($allSpecs as $spec) {
                     $specsMap[$spec["product_id"]] = $spec;
@@ -106,7 +105,7 @@ try {
             }
         }
     } else {
-        $where = [];
+        $where = ["p.is_active = 1"];
         $min_price_val = null;
 
         if (isset($_GET["brand_id"]) && !empty($_GET["brand_id"])) {

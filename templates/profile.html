@@ -1,25 +1,28 @@
 <div class="container" id="profile-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-        <h2 style="color: var(--primary-color); margin: 0;">Your Profile</h2>
-        <button id="btn-logout" style="background: var(--accent-color); margin: 0;">Logout</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Your Profile</h2>
+        <div>
+            
+            <a href="#profile-detail" class="btn-secondary" style="margin-right: 10px; margin-top:0;">Edit Profile</a> 
+            <button id="btn-logout" class="btn-danger">Logout</button>
+        </div>
     </div>
 
-    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: var(--shadow-sm);">
-        <h3 style="color: var(--primary-color); margin-top: 0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color);">Order History</h3>
-        <div style="overflow-x: auto;">
-            <table id="order-history-table" style="background: white;">
-                <thead>
-                    <tr style="background: linear-gradient(135deg, var(--primary-color) 0%, #1a252f 100%); color: white;">
-                        <th style="color: white; border: none;">Order ID</th>
-                        <th style="color: white; border: none;">Order Date</th>
-                        <th style="color: white; border: none;">Total Amount</th>
-                        <th style="color: white; border: none;">Order Status</th>
-                        <th style="color: white; border: none;">Payment Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
+    <h3>Order History</h3>
+    <div class="table-container">
+        <table id="order-history-table" class="data-table">
+            <thead>
+                <tr>
+                    <th>Order Code</th>
+                    <th>Date Placed</th>
+                    <th>Total Amount</th>
+                    <th>Order Status</th>
+                    <th>Payment Status</th>
+                </tr>
+            </thead>
+            <tbody>
+               
+            </tbody>
+        </table>
     </div>
 </div>

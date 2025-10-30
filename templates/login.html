@@ -1,20 +1,25 @@
 <div class="container" style="max-width: 500px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="margin-bottom: 10px;">Login</h2>
-        <p style="color: var(--text-light);">Please login to checkout and view your order history.</p>
-    </div>
+    <h2>Login</h2>
+    <p>Please log in to checkout and view your order history.</p>
 
-    <form id="login-form" style="box-shadow: var(--shadow-sm); padding: 30px; border-radius: 12px; background: #f9f9f9;">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="your.email@example.com" required>
+    <form id="login-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+        <div class="error-message" id="login_email_error"></div>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+        <div class="error-message" id="login_password_error"></div>
+        <div class="error-message" id="login_general_error"></div> 
 
-        <button type="submit" class="btn-submit" style="width: 100%;">Login</button>
 
-        <p style="margin-top: 20px; text-align: center;">
-            Don't have an account yet? <a href="#register" style="font-weight: 600; color: var(--primary-color);">Register now</a>
-        </p>
+        <button type="submit" class="btn-submit">Login</button>
+
+        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="#forgot-password">Forgot Password?</a>
+            <span>
+                No account yet? <a href="#register">Register now</a>
+            </span>
+        </div>
     </form>
 </div>

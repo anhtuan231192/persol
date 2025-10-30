@@ -1,217 +1,139 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
 
-require_once "../config/database.php";
-require_once "../middleware/AuthMiddleware.php";
+require_once '../config/database.php';
+require_once '../middleware/AuthMiddleware.php';
 
 $adminData = AuthMiddleware::checkAdmin();
 
 $db = (new Database())->getConnection();
-
-$method = $_SERVER["REQUEST_METHOD"];
-$data = json_decode(file_get_contents("php://input"));
-$response = ["success" => false, "message" => "An error occurred."];
+$method = $_SERVER['REQUEST_METHOD'];
+$response = ['success' => false, 'message' => 'An error occurred.'];
 
 try {
-    switch ($method) {
-        case "POST":
-            if (isset($data->_method) && strtoupper($data->_method) == "PUT") {
-                goto UPDATE;
-            }
-            if (
-                isset($data->_method) &&
-                strtoupper($data->_method) == "DELETE"
-            ) {
-                goto DELETE;
-            }
+    $actual_method = $method;
+    $data = json_decode(file_get_contents("php://input")); 
 
-            CREATE:
-            if (empty($data->product_name) || !isset($data->Price)) {
+    if ($method == 'POST') {
+        if (isset($_POST['_method'])) {
+            $actual_method = strtoupper($_POST['_method']);
+        } elseif (isset($data->_method)) {
+            $actual_method = strtoupper($data->_method);
+        }
+    }
+
+    switch ($actual_method) {
+        case 'POST':
+            if (empty($_POST['product_name']) || !isset($_POST['Price'])) {
                 http_response_code(400);
-                $response["message"] = "Product Name and Price are required.";
+                $response['message'] = 'Product Name and Price are required.';
                 echo json_encode($response);
                 exit();
             }
-
-            $sql = "INSERT INTO PRODUCTS (
-                        product_name, Price, brand_id, category_id, type_id,
-                        product_description, stock_quantity, stock_status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO PRODUCTS (product_name, Price, brand_id, category_id, type_id, product_description, stock_quantity, main_image, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)";
             $stmt = $db->prepare($sql);
-
             $stmt->execute([
-                $data->product_name,
-                $data->Price,
-                isset($data->brand_id) && !empty($data->brand_id)
-                    ? $data->brand_id
-                    : null,
-                isset($data->category_id) && !empty($data->category_id)
-                    ? $data->category_id
-                    : null,
-                isset($data->type_id) && !empty($data->type_id)
-                    ? $data->type_id
-                    : null,
-                $data->product_description ?? "",
-                $data->stock_quantity ?? 0,
-                $data->stock_status ?? "in_stock",
+                $_POST['product_name'],
+                $_POST['Price'],
+                $_POST['brand_id'] ?: null,
+                $_POST['category_id'] ?: null,
+                $_POST['type_id'] ?: null,
+                $_POST['product_description'] ?? '',
+                $_POST['stock_quantity'] ?? 0,
+                $_POST['main_image'] ?? null
             ]);
-
             http_response_code(201);
-            $response = [
-                "success" => true,
-                "message" => "Product created successfully.",
-                "product_id" => $db->lastInsertId(),
-            ];
+            $response = ['success' => true, 'message' => 'Product created.', 'product_id' => $db->lastInsertId()];
             break;
 
-        case "GET":
-            if (empty($_GET["id"])) {
-                http_response_code(400);
-                $response["message"] = "Product ID is required.";
-                echo json_encode($response);
-                exit();
-            }
-            $id = filter_var($_GET["id"], FILTER_SANITIZE_NUMBER_INT);
-            if (!$id || $id <= 0) {
-                http_response_code(400);
-                $response["message"] = "Invalid Product ID.";
-                echo json_encode($response);
-                exit();
-            }
-
-            $stmt = $db->prepare("SELECT product_id, brand_id, category_id, type_id,
-                                      product_name, product_description, Price,
-                                      stock_quantity, stock_status, image_filename, image_mime_type,
-                                      created_at, updated_at
-                                      FROM PRODUCTS WHERE product_id = ?");
-            $stmt->execute([$id]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($product) {
-                http_response_code(200);
-                $response = ["success" => true, "data" => $product];
+        case 'GET':
+            if (!empty($_GET['id'])) {
+                $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
+                $stmt = $db->prepare("SELECT * FROM PRODUCTS WHERE product_id = ?");
+                $stmt->execute([$id]);
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($product) {
+                    $response = ['success' => true, 'data' => $product];
+                } else {
+                    http_response_code(404);
+                    $response['message'] = 'Product not found.';
+                }
             } else {
-                http_response_code(404);
-                $response["message"] = "Product not found.";
+                $baseQuery = "SELECT p.product_id, p.product_name, p.Price, p.is_active, b.brand_name 
+                              FROM PRODUCTS p 
+                              LEFT JOIN BRANDS b ON p.brand_id = b.brand_id
+                              ORDER BY p.product_id DESC";
+                $stmt = $db->prepare($baseQuery);
+                $stmt->execute();
+                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $response = ['success' => true, 'data' => $products];
             }
             break;
 
-            UPDATE:
-            if (empty($data->product_id)) {
+        case 'PUT':
+            if (empty($_POST['product_id'])) {
                 http_response_code(400);
-                $response["message"] = "Product ID is required for update.";
+                $response['message'] = 'product_id is required for update.';
                 echo json_encode($response);
                 exit();
             }
-            if (empty($data->product_name) || !isset($data->Price)) {
-                http_response_code(400);
-                $response["message"] = "Product Name and Price are required.";
-                echo json_encode($response);
-                exit();
-            }
-
             $sql = "UPDATE PRODUCTS SET
                         product_name = ?, Price = ?, brand_id = ?, category_id = ?, type_id = ?,
-                        product_description = ?, stock_quantity = ?, stock_status = ?
+                        product_description = ?, stock_quantity = ?, main_image = ? 
                     WHERE product_id = ?";
             $stmt = $db->prepare($sql);
-
             $stmt->execute([
-                $data->product_name,
-                $data->Price,
-                isset($data->brand_id) && !empty($data->brand_id)
-                    ? $data->brand_id
-                    : null,
-                isset($data->category_id) && !empty($data->category_id)
-                    ? $data->category_id
-                    : null,
-                isset($data->type_id) && !empty($data->type_id)
-                    ? $data->type_id
-                    : null,
-                $data->product_description ?? "",
-                $data->stock_quantity ?? 0,
-                $data->stock_status ?? "in_stock",
-                $data->product_id,
+                $_POST['product_name'],
+                $_POST['Price'],
+                $_POST['brand_id'] ?: null,
+                $_POST['category_id'] ?: null,
+                $_POST['type_id'] ?: null,
+                $_POST['product_description'] ?? '',
+                $_POST['stock_quantity'] ?? 0,
+                $_POST['main_image'] ?? null,
+                $_POST['product_id']
             ]);
-
             http_response_code(200);
-            $response = [
-                "success" => true,
-                "message" => "Product updated successfully.",
-            ];
+            $response = ['success' => true, 'message' => 'Product updated.'];
             break;
 
-            DELETE:
+        case 'TOGGLE_STATUS':
+            if (empty($data->product_id) || !isset($data->new_status)) {
+                http_response_code(400);
+                $response['message'] = 'product_id and new_status are required.';
+                echo json_encode($response);
+                exit();
+            }
+            $new_status = (int)$data->new_status;
+            $product_id = (int)$data->product_id;
+            $stmt = $db->prepare("UPDATE PRODUCTS SET is_active = ? WHERE product_id = ?");
+            $stmt->execute([$new_status, $product_id]);
+            http_response_code(200);
+            $response = ['success' => true, 'message' => 'Product status toggled.'];
+            break;
+
+        case 'DELETE':
             if (empty($data->product_id)) {
                 http_response_code(400);
                 $response["message"] = "Product ID is required for delete.";
                 echo json_encode($response);
                 exit();
             }
-            $idToDelete = filter_var(
-                $data->product_id,
-                FILTER_SANITIZE_NUMBER_INT,
-            );
-            if (!$idToDelete || $idToDelete <= 0) {
-                http_response_code(400);
-                $response["message"] = "Invalid Product ID for delete.";
-                echo json_encode($response);
-                exit();
-            }
-
-            // Start transaction to ensure all deletions succeed or none do
-            $db->beginTransaction();
-
-            try {
-                // Delete product specifications
-                $stmt = $db->prepare(
-                    "DELETE FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?",
-                );
-                $stmt->execute([$idToDelete]);
-
-                // Delete product documents
-                $stmt = $db->prepare(
-                    "DELETE FROM PRODUCT_DOCUMENT WHERE product_id = ?",
-                );
-                $stmt->execute([$idToDelete]);
-
-                // Delete the product
-                $stmt = $db->prepare(
-                    "DELETE FROM PRODUCTS WHERE product_id = ?",
-                );
-                $stmt->execute([$idToDelete]);
-
-                $db->commit();
-
-                if ($stmt->rowCount() > 0) {
-                    http_response_code(200);
-                    $response = [
-                        "success" => true,
-                        "message" =>
-                            "Product and all related data deleted successfully.",
-                    ];
-                } else {
-                    http_response_code(404);
-                    $response["message"] =
-                        "Product not found or already deleted.";
-                }
-            } catch (Exception $e) {
-                $db->rollBack();
-                throw $e;
-            }
+            $response = ['success' => false, 'message' => 'DELETE method is disabled. Use TOGGLE_STATUS.'];
+            http_response_code(405);
             break;
 
         default:
             http_response_code(405);
-            $response["message"] = "Method Not Allowed.";
+            $response['message'] = 'Method Not Allowed.';
             break;
     }
-} catch (PDOException $e) {
-    http_response_code(500);
-    $response["message"] = "Database Error: " . $e->getMessage();
+
 } catch (Exception $e) {
+    if (isset($db) && $db->inTransaction()) $db->rollBack();
     http_response_code(500);
-    $response["message"] = "Server Error: " . $e->getMessage();
+    $response['message'] = 'Server Error: ' . $e->getMessage();
 }
 
 echo json_encode($response);

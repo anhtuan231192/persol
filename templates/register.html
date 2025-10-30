@@ -1,23 +1,31 @@
 <div class="container" style="max-width: 500px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="margin-bottom: 10px;">Register Account</h2>
-        <p style="color: var(--text-light);">Create a new account for a wonderful shopping experience</p>
-    </div>
+    <h2>Register New Account</h2>
 
-    <form id="register-form" style="box-shadow: var(--shadow-sm); padding: 30px; border-radius: 12px; background: #f9f9f9;">
-        <label for="full_name">Full Name</label>
-        <input type="text" id="full_name" placeholder="John Doe" required>
+    <form id="register-form">
+        <label for="register_username">Username:</label>
+        <input type="text" id="register_username" required>
+        <div class="error-message" id="username_error"></div>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="your.email@example.com" required>
+        <label for="register_full_name">Full Name:</label>
+        <input type="text" id="register_full_name" required>
+        <div class="error-message" id="full_name_error"></div>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••" required>
+        <label for="register_email">Email:</label>
+        <input type="email" id="register_email" required>
+        <div class="error-message" id="email_error"></div>
 
-        <button type="submit" class="btn-submit" style="width: 100%;">Register</button>
+        <label for="register_password">Password:</label>
+        <input type="password" id="register_password" required>
+        <div class="error-message" id="password_error"></div>
 
-        <p style="margin-top: 20px; text-align: center;">
-            Already have an account? <a href="#login" style="font-weight: 600; color: var(--primary-color);">Login</a>
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" required>
+        <div class="error-message" id="confirm_password_error"></div>
+
+        <button type="submit" class="btn-submit">Register</button>
+
+        <p style="margin-top: 15px;">
+            Already have an account? <a href="#login">Login here</a>
         </p>
     </form>
 </div>
